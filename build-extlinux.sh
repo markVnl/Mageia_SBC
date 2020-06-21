@@ -8,17 +8,18 @@ fi
 
 img=$(echo $ks|rev|cut -f 1 -d "/"|rev|sed s/\.ks//g)
 
-time appliance-creator --config=${ks} --name="$img" --version="7" --debug --no-compress
+time appliance-creator --config=${ks} --name="$img" --debug --no-compress
 
-rm -f $img/*.xml
+rm -f ${img}/*.xml
 chown -R $SUDO_USER. $img
+
 
 #
 # FIXME
 #
 
 echo "Setting boot partition..."
-( echo a ; echo 1 ; echo w )  | sudo fdisk  ${img}/$img-img.raw > /dev/null 2>&1
+( echo a ; echo 2 ; echo w )  | sudo fdisk  ${img}/$img-img.raw > /dev/null 2>&1
 
 #
 # END FIXME
