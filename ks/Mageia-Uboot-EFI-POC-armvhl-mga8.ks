@@ -82,7 +82,7 @@ EOF
 # TODO make this part of installkernel  (.. or kernel-install??)
 echo "Setting up device-tree..."
 kernel_version=$(echo $(basename /boot/vmlinuz-*) | sed 's/vmlinuz-//')
-cp -rp /usr/lib/linux-$kernel_version/ /boot/EFI/dtb
+cp -r /usr/lib/linux-$kernel_version/ /boot/EFI/dtb
 
 ## FIXME end: kernel install
 
@@ -98,12 +98,22 @@ sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd
 
 echo "Write README file..."
 cat >/root/README << EOF
-== Mageia Cauldron development SBC image ==
+      == Mageia Cauldron development SBC image ==
 
-Note: this is a community effort not supported by Magiea by any means
+Note: This is a community effort not supported by Magiea by any means
       it's just an "academic proof of concepts" 
       
+      ATM The mageia armv7hl kernel has no efi-stub, 
+          this image runs a rebuild kernel with the stub enabled
+          Grub2-efi from repository for armv7hl does not boot the kernel, 
+          this image has a (close to mainline) build grub2
+
+      All specialy build Packages can be found in the local repo in
+      /home/repository/mageia       
+
+
       Please check /root/anaconda-ks.cfg on how this image came to life
+
 
       nevertheless : have fun and debug!  
 
@@ -133,6 +143,18 @@ dnf clean all
 
 
 #Add local repo
+cat > /etc/yum.repos.d/mageia-local-armv7hl.repo << EOF
+#
+# Local repository configuration
+#
+
+[local-armv7hl]
+name=Mageia $releasever - armv7hl - Local
+baseurl=file:///home/repository/mageia/cauldron/armv7hl/local
+enabled=1
+gpgcheck=0
+EOF
+
 
 %include ks/RPI-wifi.ks
 
@@ -148,4 +170,6 @@ dnf clean all
 /usr/sbin/chroot $INSTALL_ROOT /bin/bash -c \
 "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg"
 /usr/bin/umount $INSTALL_ROOT/dev
+# Copy repository
+cp -r /home/repository $INSTALL_ROOT/home/.
 %end
